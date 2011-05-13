@@ -1,0 +1,92 @@
+<html>
+    <head>
+        <script>
+        
+            function onRequest(request, sender, fnResponse)
+            {
+                switch(request.type)
+                {
+        
+                    case "CLOSETOOLBAR":
+            			turnToolbarOff();
+            			if(typeof(fnResponse) != "undefined")
+            				fnResponse(result);
+            			break;
+                    case "OPENTOOLBAR":
+            			// Activate the toolbar for this tab, and if we have a url, then
+            			// show it.
+            			activeTabs[sender.tab.id] = true;
+            			if(typeof(request.displayNow) != "undefined")
+            				activateTab(sender.tab);
+            			if(typeof(fnResponse) != "undefined")
+            				fnResponse(result);
+            			break;
+                    case "RELOADTOOLBAR":
+              			// Remove the creation script so it is refreshed.
+              			setStorage("CREATIONSCRIPT", null);
+              			// And tell every toolbar to reload.
+              			onBroadcast({ type: "RELOADTOOLBAR" });
+              			break;
+        
+            	}
+            }            
+            
+            
+            
+            
+            function onBrowserActionClicked(fnResponse)
+            {
+            	var loggedIn = false;
+            	var userinfo = getStorage('extapi.userInfo');
+            	if (userinfo) {
+            		loggedIn = true;
+            	}
+            	chrome.tabs.getSelected(null, function(tabSelected) {
+            		if(!doesTabHaveToolbar(tabSelected))
+            		{
+            			// It isn't currently active, so turn on the global state, 
+            			// activate, and display the toolbar.
+            			turnToolbarOn();
+            			activateTab(tabSelected, true);
+            			
+            			// No need to show the popup
+            			fnResponse(false, loggedIn);
+            		}
+            		else
+            		{
+            			// It's an active tab already, show the popup to let the user decide
+            			// whether to Stumble or Close.
+            			fnResponse(true, loggedIn); 
+            		}
+            	});
+            }
+            
+            
+          
+            
+            
+            function turnToolbarOn() {
+                setStorage("toolbarEnabled", true);
+            }
+            
+            
+            
+            
+            function turnToolbarOff() {
+                setStorage("toolbarEnabled", false);
+            
+                // Remove the toolbar from all open tabs.
+                chrome.windows.getAll({ populate: true }, function(arrWindows) {
+                for(var i=0; i<arrWindows.length; i++) {
+                    var tabs = arrWindows[i].tabs;
+                    for(var iTab=0; iTab < tabs.length; iTab++) {
+                        removeToolbar(tabs[iTab]);
+                    }
+                }
+            });
+                clearActiveUrls();
+            }
+
+        </script>
+    </head>
+</html>

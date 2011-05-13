@@ -1,0 +1,17 @@
+{
+  "name": "Remove elements",
+  "version": "1.0",
+  "description": "Remove elements of a webpage you don't want to see.",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["jquery.js", "site.js"]
+    }
+  ],
+  "browser_action": {
+    "default_icon": "icon.png"
+  },
+  "permissions": [
+    "tabs", "http://*/*"
+  ] 
+}
